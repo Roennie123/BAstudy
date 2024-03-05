@@ -39,7 +39,6 @@ class ScreenUnlockReceiverStartModeB : BroadcastReceiver(){
     private var entryTime: Long = 0
     private var exitTime: Long = 0
     private var startedTimer: Boolean = false
-    private var showedFirstQuestionnaire: Boolean = false
     private var showedFinalQuestionaire: Boolean = false
     private var condition = "B"
 
@@ -103,11 +102,7 @@ class ScreenUnlockReceiverStartModeB : BroadcastReceiver(){
                     exitTime = System.currentTimeMillis()
                     var phubbDuration = hashMapOf<String, String>()
                     phubbDuration.put("subjectID", AppPreferences.getSubjectID(context))
-                    if(InterventionManager.createdOverlay.value == true){
-                        phubbDuration.put("showedIntervention", "true")
-                    } else{
-                        phubbDuration.put("showedIntervention", "false")
-                    }
+                    phubbDuration.put("condition", condition)
                     phubbDuration.put("date", SimpleDateFormat("dd/MM/yyyy").format(Date()))
                     phubbDuration.put("endOfPhoneUse", android.text.format.DateFormat.format("HH:mm:ss", exitTime).toString())
                     phubbDuration.put("startOfPhoneUse", android.text.format.DateFormat.format("HH:mm:ss", entryTime).toString())
@@ -119,6 +114,7 @@ class ScreenUnlockReceiverStartModeB : BroadcastReceiver(){
                         .addOnFailureListener { e -> Log.w(TAG_FIREBASE_RECEIVER, "00 error on sending phoneUse to firebase", e) }
 
                     startedTimer = false
+                    OpenedAppsManager.clearList()
                     exitTime = 0
                     entryTime = 0
                 }

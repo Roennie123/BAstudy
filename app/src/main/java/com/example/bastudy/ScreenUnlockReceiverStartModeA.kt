@@ -108,11 +108,7 @@ class ScreenUnlockReceiverStartModeA: BroadcastReceiver() {
                     exitTime = System.currentTimeMillis()
                     var phubbDuration = hashMapOf<String, String>()
                     phubbDuration.put("subjectID", AppPreferences.getSubjectID(context))
-                    if(InterventionManager.createdOverlay.value == true){
-                        phubbDuration.put("showedIntervention", "true")
-                    } else{
-                        phubbDuration.put("showedIntervention", "false")
-                    }
+                    phubbDuration.put("condition", condition)
                     phubbDuration.put("date", SimpleDateFormat("dd/MM/yyyy").format(Date()))
                     phubbDuration.put("endOfPhoneUse", android.text.format.DateFormat.format("HH:mm:ss", exitTime).toString())
                     phubbDuration.put("startOfPhoneUse", android.text.format.DateFormat.format("HH:mm:ss", entryTime).toString())
@@ -134,8 +130,6 @@ class ScreenUnlockReceiverStartModeA: BroadcastReceiver() {
                         // close screen with overlay
                         intervention.hideOverlay()
                     }
-                    // else: pressed "yes"-button and closed screen after using
-                    // createdOverlay.value and closedOverlay.value are getting resets in hideOverlay()
                 }
             }
         }
