@@ -42,8 +42,7 @@ class ScreenUnlockReceiverStartModeB : BroadcastReceiver(){
     private var showedFinalQuestionaire: Boolean = false
     private var condition = "B"
 
-    val surveylink: String = "https://surveys.informatik.uni-ulm.de/index.php/143871?lang=en"
-    val finalSurveylink: String = "https://surveys.informatik.uni-ulm.de/index.php/116453?lang=en"
+
 
     override fun onReceive(context: Context, intent: Intent?) {
 
@@ -54,7 +53,7 @@ class ScreenUnlockReceiverStartModeB : BroadcastReceiver(){
                     context,
                     "Study Questionnaire",
                     "Click to answer questionnaire.",
-                    "$surveylink" +
+                    "${InternAttributes().surveylink}" +
                             "&subjectID=${AppPreferences.getSubjectID(context)}" +
                             "&condition=$condition" +
                             "&interactionID=${AppPreferences.getLastInteractionID(context)}")
@@ -69,7 +68,7 @@ class ScreenUnlockReceiverStartModeB : BroadcastReceiver(){
                     context,
                     "Final Study Questionnaire",
                     "Click to answer questionnaire.",
-                    finalSurveylink + "&subjectID=${AppPreferences.getSubjectID(context)}")
+                    "${InternAttributes().finalSurveylink}" + "&subjectID=${AppPreferences.getSubjectID(context)}")
                 showedFinalQuestionaire = true
             }
         }

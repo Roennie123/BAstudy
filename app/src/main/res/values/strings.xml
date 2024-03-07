@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">androidstudy</string>
+    <string name="app_name">distance-study</string>
 
     <string name="accessibility_service_description">Your accessibility service description here</string>
     <string name="accessibility_service_label">accessibility service</string>

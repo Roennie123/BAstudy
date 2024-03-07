@@ -50,15 +50,6 @@ class InitActivity: AppCompatActivity() {
                 AppPreferences.setStudyDuration(this, studyDuration)
                 AppPreferences.setDaysTillStudyModeSwitch(this, switchStudyMode)
                 AppPreferences.setStudyStartMode(this, studyMode)
-                if(studyMode.equals("A")){
-                    // W01: A, W02: B
-                    AppPreferences.setLinkForQuestionaireW01(this, InternAttributes().questionaireLink_StudyModeA)
-                    AppPreferences.setLinkForQuestionaireW02(this, InternAttributes().questionaireLink_StudyModeB)
-                } else{
-                    // W01: B, W02: A
-                    AppPreferences.setLinkForQuestionaireW01(this, InternAttributes().questionaireLink_StudyModeB)
-                    AppPreferences.setLinkForQuestionaireW02(this, InternAttributes().questionaireLink_StudyModeA)
-                }
 
                 // initialization of uuid
                 createCustomUUID(groupUUID)

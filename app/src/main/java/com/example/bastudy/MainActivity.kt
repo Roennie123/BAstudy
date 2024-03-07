@@ -54,8 +54,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var animationCircle_2: ImageView
     private lateinit var startStudy_button: Button
 
-    private lateinit var testImg: ImageView
-
     // animation
     private var animationHandler: Handler = Handler()
 
@@ -69,8 +67,6 @@ class MainActivity : AppCompatActivity() {
 
     private var compensationBool: Boolean = false
 
-    //private lateinit var entryTime: String
-    //private lateinit var exitTime: String
     private lateinit var entryDate: String
     private lateinit var exitDate: String
 
@@ -133,7 +129,7 @@ class MainActivity : AppCompatActivity() {
                 startBeaconScanService()
                 // set study duration (start date, switch mode date, end date)
                 setUpStudyStart()
-                startPulse()
+                startPulse(10_000)
                 AppPreferences.markStudyAsStarted(this)
                 startStudy_button.visibility = View.INVISIBLE
             }
@@ -146,7 +142,9 @@ class MainActivity : AppCompatActivity() {
         animationCircle_1 = findViewById(R.id.img_animationcircle_1)
         animationCircle_2 = findViewById(R.id.img_animationcircle_2)
 
-        testImg = findViewById(R.id.img_icon_on)
+        if(AppPreferences.openedBefore(this) && AppPreferences.startedStudy(this)){
+            startPulse(3_000)
+        }
 
     }
 
@@ -154,11 +152,11 @@ class MainActivity : AppCompatActivity() {
     /**
      * if study starts start animation for 10 seconds
      */
-    private fun startPulse(){
+    private fun startPulse(delay: Long){
         runnable.run()
         animationHandler.postDelayed({
             stopPulse()
-        }, 10_000)
+        }, delay)
     }
 
     private fun stopPulse(){
@@ -246,14 +244,21 @@ class MainActivity : AppCompatActivity() {
                     val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
                     this.startActivity(intent) }
                 startBeaconScanService()
-                startPulse()
+                startPulse(10_000)
 
             } else if(menuItem.itemId == R.id.bt_linkToQuestionaire){
                 if(Date().after(AppPreferences.getEndDate(this))){
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://surveys.informatik.uni-ulm.de/index.php/116453?lang=en"))
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("${InternAttributes().finalSurveylink}" + "&subjectID=${AppPreferences.getSubjectID(this)}"))
                     startActivity(intent)
                     finish()
                 } else{
+                    // chance to recall questionnaire
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("${InternAttributes().surveylink}" + "&subjectID=${AppPreferences.getSubjectID(this)}" + "&interactionID=${AppPreferences.getLastInteractionID(this)}"))
+                    startActivity(intent)
+                    finish()
+
+                    // no chance to recall questionnaire
+                    /*
                     val dialogBuilder = AlertDialog.Builder(this, R.style.CustomDialogStyle)
                     val dialogView = layoutInflater.inflate(R.layout.dialog_questionaire, null)
                     dialogBuilder.setView(dialogView)
@@ -261,6 +266,7 @@ class MainActivity : AppCompatActivity() {
                     val buttonOK: Button = dialogView.findViewById(R.id.ok_button)
                     buttonOK.setOnClickListener { alertDialog.dismiss() }
                     alertDialog.show()
+                     */
                 }
             }
             true
