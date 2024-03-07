@@ -369,8 +369,8 @@ class MainActivity : AppCompatActivity() {
     private fun setUpForegroundService(){
         val builder = Notification.Builder(this, "MainActivity")
         builder.setSmallIcon(R.drawable.ic_main_reduced)
-        builder.setContentTitle("Study")
-        builder.setContentText("Thank you for participating this study. Please do not disable Bluetooth, internet or GPS. :)")
+        builder.setContentTitle("Thank you for participating this study! :)")
+        builder.setContentText("Please don't turn off Bluetooth, GPS, internet.")
         val intent = Intent(this, MainActivity::class.java)
         val pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT + PendingIntent.FLAG_IMMUTABLE)
         builder.setContentIntent(pendingIntent);
