@@ -1,5 +1,6 @@
 package com.example.bastudy
 
+import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -8,10 +9,12 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
+import android.widget.RemoteViews
 
 
 object NotificationCreater {
 
+    @SuppressLint("ResourceAsColor", "RemoteViewLayout")
     fun showNotification(context: Context, title: String?, message: String?, link: String) {
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
@@ -28,7 +31,7 @@ object NotificationCreater {
         val notification: Notification = Notification.Builder(context, "channel_id")
             .setContentTitle(title)
             .setContentText(message)
-            .setSmallIcon(R.drawable.ic_main_reduced)
+            .setSmallIcon(R.drawable.ic_social_reduced)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
             .build()

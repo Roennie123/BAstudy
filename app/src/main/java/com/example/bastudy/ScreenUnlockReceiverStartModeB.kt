@@ -53,7 +53,7 @@ class ScreenUnlockReceiverStartModeB : BroadcastReceiver(){
                 NotificationCreater.showNotification(
                     context,
                     "Study Questionnaire",
-                    "A questionnaire is waiting for you. Please answer it as soon as possible.",
+                    "Click to answer questionnaire.",
                     "$surveylink" +
                             "&subjectID=${AppPreferences.getSubjectID(context)}" +
                             "&condition=$condition" +
@@ -67,8 +67,9 @@ class ScreenUnlockReceiverStartModeB : BroadcastReceiver(){
             if(Date().after(AppPreferences.getEndDate(context))){
                 NotificationCreater.showNotification(
                     context,
-                    "Study Questionnaire",
-                    "A questionnaire is waiting for you. Please answer it as soon as possible.", finalSurveylink)
+                    "Final Study Questionnaire",
+                    "Click to answer questionnaire.",
+                    finalSurveylink + "&subjectID=${AppPreferences.getSubjectID(context)}")
                 showedFinalQuestionaire = true
             }
         }
@@ -86,6 +87,7 @@ class ScreenUnlockReceiverStartModeB : BroadcastReceiver(){
                     if(Date().before(AppPreferences.getSwitchDate(context)) || Date().equals(AppPreferences.getSwitchDate(context))){
                         intervention = Intervention(context)
                         InterventionManager.setOverlayCreatingStatus(true)
+                    } else{
                         condition = "A"
                     }
 
