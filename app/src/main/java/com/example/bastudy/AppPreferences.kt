@@ -32,9 +32,24 @@ class AppPreferences {
         private const val LINK_QUESTIONAIRE_W01 = "questionaireOfW01"
         private const val LINK_QUESTIONAIRE_W02 = "questionaireOfW02"
 
-        private const val SHOW_QUESTIONNAIRE = "showQuestionnaire"
+        private const val STOP_SURVEY_TIMER = "stopQuestionnaireTimer"
+        private const val SHOW_SURVEY = "showQuestionnaire"
         private const val NEXT_QUESTIONNAIRE_TIME = "timeToShowNextQuestionnaire"
         private const val LAST_INTERACTION_ID = "lastInteractionID"
+
+        private const val USED_PHONE = "usedPhoneWhileInteraction"
+
+        fun setUsedPhone(context: Context, usedPhone: Boolean){
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            val editor = prefs.edit()
+            editor.putBoolean(USED_PHONE, usedPhone)
+            editor.apply()
+        }
+
+        fun getUsedPhone(context: Context): Boolean{
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            return prefs.getBoolean(USED_PHONE, false)
+        }
 
         fun setLastInteractionID(context: Context, interactionID: String){
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -47,15 +62,27 @@ class AppPreferences {
             return prefs.getString(LAST_INTERACTION_ID, "")
         }
 
-        fun getShowQuestionnaire(context: Context): Boolean{
+        fun getShowSurvey(context: Context): Boolean{
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            return prefs.getBoolean(SHOW_QUESTIONNAIRE, false)
+            return prefs.getBoolean(SHOW_SURVEY, false)
         }
 
-        fun setShowQuestionnaire(context: Context, bool: Boolean){
+        fun setShowSurvey(context: Context, bool: Boolean){
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             val editor = prefs.edit()
-            editor.putBoolean(SHOW_QUESTIONNAIRE, bool)
+            editor.putBoolean(SHOW_SURVEY, bool)
+            editor.apply()
+        }
+
+        fun getStopSurveyTimer(context: Context): Boolean{
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            return prefs.getBoolean(STOP_SURVEY_TIMER, false)
+        }
+
+        fun setStopSurveyTimer(context: Context, bool: Boolean){
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            val editor = prefs.edit()
+            editor.putBoolean(STOP_SURVEY_TIMER, bool)
             editor.apply()
         }
 

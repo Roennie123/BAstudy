@@ -46,7 +46,7 @@ class ScreenUnlockReceiverStartModeB : BroadcastReceiver(){
 
     override fun onReceive(context: Context, intent: Intent?) {
 
-        if(AppPreferences.getShowQuestionnaire(context)){
+        if(!AppPreferences.getStopSurveyTimer(context) && AppPreferences.getShowSurvey(context)){
             Log.d(TAG_NOTIFICATION_STATUS, "02 planned to show notification at ${AppPreferences.getNextQuestionnaireTime(context)}")
             if(Date().after(AppPreferences.getNextQuestionnaireTime(context))){
                 NotificationCreater.showNotification(
@@ -57,7 +57,8 @@ class ScreenUnlockReceiverStartModeB : BroadcastReceiver(){
                             "&subjectID=${AppPreferences.getSubjectID(context)}" +
                             "&condition=$condition" +
                             "&interactionID=${AppPreferences.getLastInteractionID(context)}")
-                AppPreferences.setShowQuestionnaire(context, false)
+                AppPreferences.setShowSurvey(context, false)
+                AppPreferences.setUsedPhone(context,false)
                 Log.d(TAG_NOTIFICATION_STATUS, "01 success on sending notification for questionnaire")
             }
         }
@@ -79,7 +80,10 @@ class ScreenUnlockReceiverStartModeB : BroadcastReceiver(){
                 Log.d(TAG_ACTION_RECEIVER, "01 unlocked phone")
 
                 if((SocialContactManager.socialInteraction.value == true) && (InterventionManager.createdOverlay.value == false)){
-                    Log.d(ContentValues.TAG, "social Interaction")
+                    Log.d(TAG_SOCIAL_STATUS, "social Interaction")
+
+                    // mark that phone was used to show questionnaire notification
+                    AppPreferences.setUsedPhone(context, true)
 
                     // shows intervention for 7 days
                     // then switching to study mode A without interventions

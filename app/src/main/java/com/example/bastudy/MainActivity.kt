@@ -26,7 +26,6 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.Button
 import android.widget.ImageView
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.PopupMenu
 import androidx.appcompat.widget.Toolbar
@@ -41,6 +40,7 @@ import org.altbeacon.beacon.Identifier
 import org.altbeacon.beacon.MonitorNotifier
 import org.altbeacon.beacon.RangeNotifier
 import org.altbeacon.beacon.Region
+import org.altbeacon.beacon.service.RunningAverageRssiFilter
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -342,6 +342,8 @@ class MainActivity : AppCompatActivity() {
         beaconManager.setForegroundScanPeriod(1100)
         beaconManager.setForegroundBetweenScanPeriod(10000)
 
+        // TODO: check if works
+        BeaconManager.setRssiFilterImplClass(RunningAverageRssiFilter::class.java)
 
         setUpForegroundService()
 
@@ -391,9 +393,9 @@ class MainActivity : AppCompatActivity() {
      * handles with recognized beacons (customUUID from region)
      */
     private var isRangingStarted: Boolean = false
-    private var registerNewSession: Boolean = true
-    private var startedCompensation: Boolean = false
+    private var startedSessionTimer: Boolean = false
 
+    val circleBuffer: CircleBuffer = CircleBuffer(4)
     private fun startRanging() {
         if (!isRangingStarted) {
             Log.d(TAG_RANGING, "started ranging")
@@ -402,25 +404,33 @@ class MainActivity : AppCompatActivity() {
                     if (beacons != null) {
                         for(beacon: Beacon in beacons){
                             Log.d(TAG_RANGING, "02 detect beacon ${beacon.distance} metres nearby")
-                            if(beacon.distance < 4){
-                                //compensationBool = true
-                                startedCompensation = false
+                            circleBuffer.append(beacon.distance)
+                            Log.d(TAG_RANGING, "average: ${circleBuffer.average()}")
+                            //if(circleBuffer.average() < 3){
+                            if(circleBuffer.average() < 4){
+                                compensationBool = true
                                 SocialContactManager.updateSocialInteractionStatus(true)
-                                if(registerNewSession){
+                                /**
+                                 * only starting new social session timer once per session
+                                 * * startedSessionTimer == FALSE --> register new session
+                                 * * startedSessionTimer == TRUE --> session already registered --> no new session
+                                 */
+                                if(!startedSessionTimer){
                                     // start timer for social interaction's duration
                                     entryTime = System.currentTimeMillis()
-                                    Log.d(TAG_RANGING, "01 started session timer at ${SimpleDateFormat("HH:mm:ss").format(entryTime).toString()}")
                                     Log.d(TAG_RANGING, "01 started session timer at ${android.text.format.DateFormat.format("HH:mm:ss", (entryTime))}")
                                     entryDate = SimpleDateFormat("dd/MM/yyyy").format(Date()).toString()
-                                    registerNewSession = false
+                                    startedSessionTimer = true
                                 }
-                                // set showQuestionnaire-Bool to false -> don't show questionnaire
-                                AppPreferences.setShowQuestionnaire(this@MainActivity, false)
-                                Log.d(TAG_RANGING, "01 social interaction (distance < 4 metres)")
+                                // stop survey timer because detected beacon again
+                                AppPreferences.setStopSurveyTimer(this@MainActivity, true)
+                                // show survey because a social interaction was registered
+                                //TODO: check AppPreferences.setShowSurvey(this@MainActivity, true)
+                                Log.d(TAG_RANGING, "01 social interaction (distance < 3 metres)")
                             } else{
                                 SocialContactManager.updateSocialInteractionStatus(false)
-                                Log.d(TAG_RANGING, "00 no social interaction (distance > 4 metres)")
-                                //compensationBool = false
+                                Log.d(TAG_RANGING, "00 no social interaction (distance > 3 metres)")
+                                compensationBool = false
                             }
                         }
                     }
@@ -443,14 +453,9 @@ class MainActivity : AppCompatActivity() {
         if(Date().before(AppPreferences.getEndDate(this)) || Date().equals(AppPreferences.getEndDate(this))){
             if (state == MonitorNotifier.INSIDE) {
                 Log.d(TAG_MONITORING, "01 inside")
-                compensationBool = true
-                //SocialContactManager.updateSocialInteractionStatus(true)
 
                 startRanging()
 
-                //entryTime = null.toString()
-                //entryDate = null.toString()
-                //entryTime = SimpleDateFormat("HH:mm:ss").format(Date()).toString()
             }
             else if(state == MonitorNotifier.OUTSIDE){
                 Log.d(TAG_MONITORING, "02 outside/still inside")
@@ -464,7 +469,12 @@ class MainActivity : AppCompatActivity() {
 
     private fun compensateScanFails(){
         compensationHandler.postDelayed(
-            { if(!compensationBool){
+            /**
+             * only sending data and starting processes if
+             * * compensationBool == FALSE --> there was no beacon detection (again) since the last 30 seconds
+             * * startedSessionTimer == TRUE --> detected beacon via ranging (not only because of INSIDE)
+             */
+            { if(!compensationBool && startedSessionTimer){
                 Log.d(TAG_MONITORING, "00 outside")
                 stopRanging()
                 SocialContactManager.updateSocialInteractionStatus(false)
@@ -474,11 +484,7 @@ class MainActivity : AppCompatActivity() {
 
                 //exitTime = SimpleDateFormat("HH:mm:ss").format(Date()).toString()
                 exitDate = SimpleDateFormat("dd/MM/yyyy").format(Date()).toString()
-                Log.d(TAG_RANGING, "00 stopped session timer at ${SimpleDateFormat("HH:mm:ss").format(exitTime).toString()}")
                 Log.d(TAG_RANGING, "00 stopped session timer at ${android.text.format.DateFormat.format("HH:mm:ss", (exitTime))}")
-                Log.d(TAG_MONITORING, "session duration: ${android.text.format.DateFormat.format("HH:mm:ss", (exitTime - entryTime))}")
-
-                registerNewSession = true
 
                 var socialInteraction = hashMapOf<String, String>()
                 socialInteraction.put("subjectID", AppPreferences.getSubjectID(this))
@@ -496,8 +502,15 @@ class MainActivity : AppCompatActivity() {
                     .addOnFailureListener { e -> Log.w(TAG_FIREBASE_MAIN, "00 error on sending socialInteraction to firebase", e) }
 
                 //set countertime for questionnaire -> shows questionnaire in 10 minutes if there is no further interaction
-                AppPreferences.setShowQuestionnaire(this, true)
+                AppPreferences.setStopSurveyTimer(this, false)
+
+                if(AppPreferences.getUsedPhone(this)){
+                    AppPreferences.setShowSurvey(this, true)
+                }
                 calculateNextQuestionnaireTime(Date())
+
+                startedSessionTimer = false
+                circleBuffer.clearBuffer()
 
             } },
             30000)
